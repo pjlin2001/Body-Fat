@@ -1,69 +1,73 @@
+# Load necessary libraries
 library(shiny)
+library(ggplot2)
 
-# Coefficients
-coefficients <- c(
-  ADIPOSITY = 0.0975,
-  KNEE = -0.0750,
-  CHEST = -0.0099,
-  ABDOMEN = 0.0381,
-  DENSITY = -396.4177,
-  BICEPS = -0.0007,
-  NECK = 0.0498,
-  WEIGHT = -0.0081,
-  HIP = -0.0128,
-  HEIGHT = 0.0084,
-  Intercept = 435.3523
-)
+# Load the data from the CSV file
+data <- read.csv("C:/Users/phili/Downloads/CleanedData.csv")  # Adjust the file path
 
 # Define the user interface (UI)
 ui <- fluidPage(
-  titlePanel("Linear Regression Predictor"),
+  titlePanel("Linear Regression App"),
   sidebarLayout(
     sidebarPanel(
-      textInput("ADIPOSITY", "ADIPOSITY:", value = "0"),
-      textInput("KNEE", "KNEE:", value = "0"),
-      textInput("CHEST", "CHEST:", value = "0"),
-      textInput("ABDOMEN", "ABDOMEN:", value = "0"),
-      textInput("DENSITY", "DENSITY:", value = "0"),
-      textInput("BICEPS", "BICEPS:", value = "0"),
-      textInput("NECK", "NECK:", value = "0"),
-      textInput("WEIGHT", "WEIGHT:", value = "0"),
-      textInput("HIP", "HIP:", value = "0"),
-      textInput("HEIGHT", "HEIGHT:", value = "0"),
-      actionButton("predictButton", "Predict"),
-      helpText("Note: Enter values for predictor variables.")
+      textInput("density", "DENSITY:", value = "0.5"),
+      textInput("height", "HEIGHT:", value = "65"),
+      textInput("adiposity", "ADIPOSITY:", value = "25"),
+      actionButton("calculate", "Calculate")
     ),
     mainPanel(
-      h3("Body Fat Prediction:"),
-      textOutput("prediction")
+      h4("Predicted Value:"),
+      verbatimTextOutput("predicted_value"),
+      plotOutput("regression_plot")
     )
   )
 )
 
 # Define the server logic
 server <- function(input, output) {
-  # Perform linear regression when the "Predict" button is clicked
-  observeEvent(input$predictButton, {
-    # Convert text inputs to numeric values
-    predictor_values <- sapply(names(coefficients)[-11], function(var_name) {
-      as.numeric(input[[var_name]])
-    })
+  # Linear regression coefficients
+  coefficients <- c(-4.09853504e+02, -1.12866868e-02, 1.03324522e-02)
+  
+  # Perform linear regression based on user inputs
+  regression_result <- eventReactive(input$calculate, {
+    density <- as.numeric(input$density)
+    height <- as.numeric(input$height)
+    adiposity <- as.numeric(input$adiposity)
     
-    # Check if the conversion was successful
-    if (all(is.numeric(predictor_values))) {
-      # Calculate the prediction using coefficients
-      prediction <- coefficients["Intercept"] +
-        sum(predictor_values * coefficients[names(predictor_values)])
-      
-      # Display the prediction
-      output$prediction <- renderText({
-        paste("Predicted Percentage:", round(prediction, 2), "%")
-      })
+    # Check if input values are valid numbers
+    if (is.numeric(density) && is.numeric(height) && is.numeric(adiposity)) {
+      # Calculate the predicted value
+      predicted_value <- coefficients[1] * density +
+        coefficients[2] * height + coefficients[3] * adiposity + 452.04779969074616
+      return(list(predicted_value = predicted_value, density = density, height = height, adiposity = adiposity))
     } else {
-      # Handle invalid input
-      output$prediction <- renderText({
-        "Invalid input. Please enter valid numeric values."
-      })
+      return("Invalid input. Please enter valid numbers.")
+    }
+  })
+  
+  # Display the predicted value or error message
+  output$predicted_value <- renderText({
+    predicted_value <- regression_result()
+    if (is.numeric(predicted_value$predicted_value)) {
+      paste("Predicted Value:", predicted_value$predicted_value)
+    } else {
+      predicted_value
+    }
+  })
+  
+  # Create a scatter plot with regression line and input/predicted points
+  output$regression_plot <- renderPlot({
+    result <- regression_result()
+    if (is.numeric(result$predicted_value)) {
+      data$PREDICTED <- coefficients[1] * data$DENSITY +
+        coefficients[2] * data$HEIGHT + coefficients[3] * data$ADIPOSITY + 452.04779969074616
+      
+      p <- ggplot(data, aes(x = DENSITY, y = PREDICTED)) +
+        geom_point(color = "blue", size = 3) +  # Data points in blue
+        geom_abline(intercept = 452.04779969074616, slope = coefficients[1], color = "black", linetype = "dashed") +  # Line in black
+        geom_point(data = data.frame(DENSITY = result$density, PREDICTED = result$predicted_value), aes(x = DENSITY, y = PREDICTED), color = "red", size = 3) +  # Input/Predicted points in red
+        labs(x = "DENSITY", y = "Predicted Value", title = "Linear Regression Plot")
+      print(p)
     }
   })
 }
