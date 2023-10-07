@@ -5,8 +5,37 @@ library(DT)
 # Load the data from the CSV file (make sure to adjust the file path)
 data <- read.csv("C:/Users/phili/Downloads/cleaned_data.csv")
 
-# Define the user interface (UI)
+# Define the UI
 ui <- fluidPage(
+  tags$head(
+    tags$script(HTML('
+      $(document).ready(function() {
+        // Initialize image visibility
+        $("#abdomen_image").hide();
+        $("#chest_image").hide();
+        $("#wrist_image").hide();
+        
+        // Show/hide images based on button clicks
+        $("#show_abdomen").click(function() {
+          $("#abdomen_image").show();
+          $("#chest_image").hide();
+          $("#wrist_image").hide();
+        });
+        
+        $("#show_chest").click(function() {
+          $("#abdomen_image").hide();
+          $("#chest_image").show();
+          $("#wrist_image").hide();
+        });
+        
+        $("#show_wrist").click(function() {
+          $("#abdomen_image").hide();
+          $("#chest_image").hide();
+          $("#wrist_image").show();
+        });
+      });
+    '))
+  ),
   titlePanel("Bodyfat Prediction App"),
   sidebarLayout(
     sidebarPanel(
@@ -14,17 +43,32 @@ ui <- fluidPage(
       numericInput("chest", "CHEST (inches):", value = 42),
       numericInput("wrist", "WRIST (inches):", value = 8.5),
       numericInput("adiposity", "ADIPOSITY:", value = 30),
-      actionButton("calculate", "Calculate")
+      actionButton("calculate", "Calculate"),
+      actionButton("show_abdomen", "Show Abdomen Image"),
+      actionButton("show_chest", "Show Chest Image"),
+      actionButton("show_wrist", "Show Wrist Image")
     ),
     mainPanel(
       h4("Predicted Bodyfat:"),
       verbatimTextOutput("predicted_bodyfat"),
       h4("Predicted Density:"),
       verbatimTextOutput("predicted_density"),
+      conditionalPanel(
+        condition = "input.show_abdomen",
+        imageOutput("abdomen_image")
+      ),
+      conditionalPanel(
+        condition = "input.show_chest",
+        imageOutput("chest_image")
+      ),
+      conditionalPanel(
+        condition = "input.show_wrist",
+        imageOutput("wrist_image")
+      ),
       plotOutput("regression_plot", brush = brushOpts(id = "regression_plot_brush")),
       dataTableOutput("user_info_table")
     )
-  )
+  ),
 )
 
 # Define the server logic
@@ -143,7 +187,7 @@ server <- function(input, output, session) {
       # Store the brushed points in the reactiveValues object
       brushed_points_data$data <- brushedPoints(data_data, input$regression_plot_brush, xvar = "DENSITY", yvar = "PREDICTED_BODYFAT")
       
-      print(p)
+      p
     }
   })
   
@@ -160,10 +204,36 @@ server <- function(input, output, session) {
       return(data)
     }
   })
+  
   # Render the user information table
   output$user_info_table <- renderDT({
     datatable(reactive_data())
   })
+  # Dynamically set image sources based on input buttons
+  output$abdomen_image <- renderImage({
+    if (input$show_abdomen) {
+      list(src = "C:/Users/phili/Downloads/Abs.png", width = "500px", height = "auto")
+    } else {
+      list(src = NULL, width = "500px", height = "auto")
+    }
+  }, deleteFile = FALSE)
+  
+  output$chest_image <- renderImage({
+    if (input$show_chest) {
+      list(src = "C:/Users/phili/Downloads/Chest.png", width = "500px", height = "auto")
+    } else {
+      list(src = NULL, width = "500px", height = "auto")
+    }
+  }, deleteFile = FALSE)
+  
+  output$wrist_image <- renderImage({
+    if (input$show_wrist) {
+      list(src = "C:/Users/phili/Downloads/Wrist.png", width = "500px", height = "auto")
+    } else {
+      list(src = NULL, width = "500px", height = "auto")
+    }
+  }, deleteFile = FALSE)
+  
 }
 
 # Run the Shiny app
