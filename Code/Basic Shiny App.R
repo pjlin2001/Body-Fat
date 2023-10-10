@@ -3,7 +3,7 @@ library(ggplot2)
 library(DT)
 
 # Load the data from the CSV file (make sure to adjust the file path)
-data <- read.csv("C:/Users/Philip/Downloads/cleaned_data.csv")
+data <- read.csv("cleaned_data.csv")
 
 # Define the UI
 ui <- fluidPage(
@@ -14,26 +14,26 @@ ui <- fluidPage(
         $("#abdomen_image").hide();
         $("#chest_image").hide();
         $("#wrist_image").hide();
-        
+
         // Show/hide images based on button clicks
         $("#show_abdomen").click(function() {
           $("#abdomen_image").show();
           $("#chest_image").hide();
           $("#wrist_image").hide();
         });
-        
+
         $("#show_chest").click(function() {
           $("#abdomen_image").hide();
           $("#chest_image").show();
           $("#wrist_image").hide();
         });
-        
+
         $("#show_wrist").click(function() {
           $("#abdomen_image").hide();
           $("#chest_image").hide();
           $("#wrist_image").show();
         });
-        
+
         $("#calculate").click(function() {
           $("#abdomen_image").hide();
           $("#chest_image").hide();
@@ -43,38 +43,44 @@ ui <- fluidPage(
     '))
   ),
   titlePanel("Bodyfat Prediction App"),
-  sidebarLayout(
-    sidebarPanel(
-      numericInput("abdomen", "ABDOMEN (inches):", value = 35.43),
-      numericInput("chest", "CHEST (inches):", value = 42),
-      numericInput("wrist", "WRIST (inches):", value = 8.5),
-      numericInput("adiposity", "ADIPOSITY:", value = 30),
-      actionButton("calculate", "Calculate"),
-      actionButton("show_abdomen", "Show Abdomen Image"),
-      actionButton("show_chest", "Show Chest Image"),
-      actionButton("show_wrist", "Show Wrist Image")
+  fluidRow(
+    column(3,
+           numericInput("abdomen", "ABDOMEN (inches):", value = 35.43),
+           numericInput("chest", "CHEST (inches):", value = 42),
+           numericInput("wrist", "WRIST (inches):", value = 8.5),
+           numericInput("adiposity", "ADIPOSITY:", value = 30),
+           actionButton("calculate", "Calculate"),
+           actionButton("show_abdomen", "Show Abdomen Image"),
+           actionButton("show_chest", "Show Chest Image"),
+           actionButton("show_wrist", "Show Wrist Image")
     ),
-    mainPanel(
-      h4("Predicted Bodyfat:"),
-      verbatimTextOutput("predicted_bodyfat"),
-      h4("Predicted Density:"),
-      verbatimTextOutput("predicted_density"),
-      conditionalPanel(
-        condition = "input.show_abdomen",
-        imageOutput("abdomen_image")
-      ),
-      conditionalPanel(
-        condition = "input.show_chest",
-        imageOutput("chest_image")
-      ),
-      conditionalPanel(
-        condition = "input.show_wrist",
-        imageOutput("wrist_image")
-      ),
-      plotOutput("regression_plot", brush = brushOpts(id = "regression_plot_brush")),
-      dataTableOutput("user_info_table")
+    column(9,
+           mainPanel(
+             h4("Predicted Bodyfat:"),
+             verbatimTextOutput("predicted_bodyfat"),
+             h4("Predicted Density:"),
+             verbatimTextOutput("predicted_density"),
+             plotOutput("regression_plot", brush = brushOpts(id = "regression_plot_brush")),
+             conditionalPanel(
+               condition = "input.show_abdomen",
+               imageOutput("abdomen_image")
+             ),
+             conditionalPanel(
+               condition = "input.show_chest",
+               imageOutput("chest_image")
+             ),
+             conditionalPanel(
+               condition = "input.show_wrist",
+               imageOutput("wrist_image")
+             )
+           )
     )
   ),
+  fluidRow(
+    column(12,
+           dataTableOutput("user_info_table")
+    )
+  )
 )
 
 # Define the server logic
