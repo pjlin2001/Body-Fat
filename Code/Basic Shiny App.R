@@ -3,7 +3,7 @@ library(ggplot2)
 library(DT)
 
 # Load the data from the CSV file (make sure to adjust the file path)
-data <- read.csv("C:/Users/phili/Downloads/cleaned_data.csv")
+data <- read.csv("C:/Users/Philip/Downloads/cleaned_data.csv")
 
 # Define the UI
 ui <- fluidPage(
@@ -32,6 +32,12 @@ ui <- fluidPage(
           $("#abdomen_image").hide();
           $("#chest_image").hide();
           $("#wrist_image").show();
+        });
+        
+        $("#calculate").click(function() {
+          $("#abdomen_image").hide();
+          $("#chest_image").hide();
+          $("#wrist_image").hide();
         });
       });
     '))
@@ -212,7 +218,7 @@ server <- function(input, output, session) {
   # Dynamically set image sources based on input buttons
   output$abdomen_image <- renderImage({
     if (input$show_abdomen) {
-      list(src = "C:/Users/phili/Downloads/Abs.png", width = "500px", height = "auto")
+      list(src = "Abs.png", width = "500px", height = "auto")
     } else {
       list(src = NULL, width = "500px", height = "auto")
     }
@@ -220,7 +226,7 @@ server <- function(input, output, session) {
   
   output$chest_image <- renderImage({
     if (input$show_chest) {
-      list(src = "C:/Users/phili/Downloads/Chest.png", width = "500px", height = "auto")
+      list(src = "Chest.png", width = "500px", height = "auto")
     } else {
       list(src = NULL, width = "500px", height = "auto")
     }
@@ -228,7 +234,7 @@ server <- function(input, output, session) {
   
   output$wrist_image <- renderImage({
     if (input$show_wrist) {
-      list(src = "C:/Users/phili/Downloads/Wrist.png", width = "500px", height = "auto")
+      list(src = "Wrist.png", width = "500px", height = "auto")
     } else {
       list(src = NULL, width = "500px", height = "auto")
     }
