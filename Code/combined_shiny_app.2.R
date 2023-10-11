@@ -88,22 +88,26 @@ ui <- fluidPage(
                         )
                  )
                ),
-           fluidRow(
+               fluidRow(
                  column(12,
                         dataTableOutput("user_info_table")
                  )
                )
              )
     ),
-    tabPanel("Outliers Detection using Z-Scores",
+    tabPanel("Outliers Detection",
              fluidPage(
-               titlePanel("Outliers Detection using Z-Scores"),
+               titlePanel("Outliers Detection using Z-Scores, DFBETA, and Cook's Distance"),
                sidebarLayout(
                  sidebarPanel(
-                   selectInput("xvar", "X-axis:", choices = setdiff(colnames(outliers_data), c("BODYFAT", "Status")), selected = "AGE")
+                   selectInput("xvar", "X-axis:", choices = setdiff(colnames(outliers_data), c("BODYFAT", "Status")), selected = "AGE"),
+                   radioButtons("table_type", "Select Table Type:",
+                                choices = c("Z-Scores", "DFBETA", "Cook's Distance"),
+                                selected = "Z-Scores"
+                   )
                  ),
                  mainPanel(
-                   plotOutput("scatter", brush = brushOpts(id = "scatter_brush")),
+                   plotOutput("outlier_plot"),  # Add a placeholder plot output
                    DTOutput("table")
                  )
                )
