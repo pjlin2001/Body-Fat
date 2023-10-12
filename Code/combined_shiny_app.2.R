@@ -6,6 +6,11 @@ library(DT)
 bodyfat_data <- read.csv("cleaned_data.csv")
 # #### Load data for Outliers Detection using Z-Scores ####
 outliers_data <- read.csv("BodyFat.csv")
+
+# COnvert to Imperial metric
+columns_to_convert <- c('ABDOMEN', 'HIP', 'THIGH', 'KNEE', 'ANKLE', 'BICEPS', 'FOREARM', 'WRIST')
+outliers_data[columns_to_convert] <- outliers_data[columns_to_convert] * 0.3937
+
 outliers_data$IDNO <- NULL
 z_scores <- scale(outliers_data)
 row_z_scores <- rowSums(z_scores^2)
