@@ -14,30 +14,38 @@ ui <- fluidPage(
         $("#abdomen_image").hide();
         $("#chest_image").hide();
         $("#wrist_image").hide();
+        $("#scatter_plot").hide(); // Hide the scatter plot initially
 
-        // Show/hide images based on button clicks
+        // Show/hide images and scatter plot based on button clicks
         $("#show_abdomen").click(function() {
           $("#abdomen_image").show();
           $("#chest_image").hide();
           $("#wrist_image").hide();
+          $("#scatter_plot").hide(); // Hide the scatter plot when showing images
+          Shiny.setInputValue("reset_scatter_brush", true, {priority: "event"});
         });
 
         $("#show_chest").click(function() {
           $("#abdomen_image").hide();
           $("#chest_image").show();
           $("#wrist_image").hide();
+          $("#scatter_plot").hide(); // Hide the scatter plot when showing images
+          Shiny.setInputValue("reset_scatter_brush", true, {priority: "event"});
         });
 
         $("#show_wrist").click(function() {
           $("#abdomen_image").hide();
           $("#chest_image").hide();
           $("#wrist_image").show();
+          $("#scatter_plot").hide(); // Hide the scatter plot when showing images
+          Shiny.setInputValue("reset_scatter_brush", true, {priority: "event"});
         });
 
         $("#calculate").click(function() {
           $("#abdomen_image").hide();
           $("#chest_image").hide();
           $("#wrist_image").hide();
+          $("#scatter_plot").show(); // Show the scatter plot when Calculate is clicked
         });
       });
     '))
@@ -60,7 +68,8 @@ ui <- fluidPage(
              verbatimTextOutput("predicted_bodyfat"),
              h4("Predicted Density:"),
              verbatimTextOutput("predicted_density"),
-             plotOutput("regression_plot", brush = brushOpts(id = "regression_plot_brush")),
+             plotOutput("regression_plot", brush = brushOpts(id = "regression_brush")),
+             plotOutput("scatter_plot", brush = brushOpts(id = "scatter_brush")),  # Add the scatter plot here
              conditionalPanel(
                condition = "input.show_abdomen",
                imageOutput("abdomen_image")
@@ -94,7 +103,10 @@ server <- function(input, output, session) {
   intercept_bodyfat <- 348.0722797501468
   
   # Create a reactiveValues object to store brushed points
-  brushed_points_data <- reactiveValues(data = NULL)
+  brushed_points_data <- reactiveValues(
+    scatter_data = NULL,
+    regression_data = NULL
+  )
   
   # Error handling for invalid input
   observe({
@@ -196,8 +208,23 @@ server <- function(input, output, session) {
         labs(x = "Density", y = "Predicted Bodyfat", title = "Bodyfat Prediction") +
         scale_color_manual(values = c("User Input" = "red", "Data" = "blue"))
       
-      # Store the brushed points in the reactiveValues object
-      brushed_points_data$data <- brushedPoints(data_data, input$regression_plot_brush, xvar = "DENSITY", yvar = "PREDICTED_BODYFAT")
+      brushed_points_data$regression_data <- brushedPoints(data_data, input$regression_brush, xvar = "DENSITY", yvar = "PREDICTED_BODYFAT")
+      
+      p
+    }
+  })
+  
+  # Create a scatter plot for Density vs Abdomen
+  output$scatter_plot <- renderPlot({
+    abdomen <- as.numeric(input$abdomen)
+    
+    if (is.numeric(abdomen)) {
+      # Create a scatter plot
+      p <- ggplot(data, aes(x = ABDOMEN, y = DENSITY)) +
+        geom_point(size = 3) +
+        labs(x = "ABDOMEN", y = "Density", title = "Density vs Abdomen Scatter Plot")
+      
+      brushed_points_data$scatter_data <- brushedPoints(data, input$scatter_brush, xvar = "ABDOMEN", yvar = "DENSITY")
       
       p
     }
@@ -205,10 +232,12 @@ server <- function(input, output, session) {
   
   # Create a reactive dataset that depends on brushed points
   reactive_data <- reactive({
-    brushed_data <- brushed_points_data$data
+    brushed_data_regression <- brushed_points_data$regression_data
+    brushed_data_scatter <- brushed_points_data$scatter_data
     
-    if (!is.null(brushed_data) && nrow(brushed_data) > 0) {
-      # Filter the full dataset to only include rows with selected density values
+    if (!is.null(brushed_data_regression) && !is.null(brushed_data_scatter)) {
+      # Combine brushed data from both scatter and regression plots
+      brushed_data <- rbind(brushed_data_regression, brushed_data_scatter)
       selected_densities <- brushed_data$DENSITY
       filtered_data <- data[data$DENSITY %in% selected_densities, ]
       return(filtered_data)
@@ -221,6 +250,7 @@ server <- function(input, output, session) {
   output$user_info_table <- renderDT({
     datatable(reactive_data())
   })
+  
   # Dynamically set image sources based on input buttons
   output$abdomen_image <- renderImage({
     if (input$show_abdomen) {
@@ -245,7 +275,6 @@ server <- function(input, output, session) {
       list(src = NULL, width = "500px", height = "auto")
     }
   }, deleteFile = FALSE)
-  
 }
 
 # Run the Shiny app
