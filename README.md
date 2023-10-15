@@ -8,7 +8,7 @@ This project uses a couple metrics: accuracy with a tolerance, RMSE, R^2, and WM
 # RUNNING CODE
 To use the Body Fat.ipynb python notebook, download the notebook and open in Jupyter Notebook and download the data found at Data/BodyFat.csv. Change the data = pd.read_csv(r'C:\Users\phili\Downloads\BodyFat.csv') lines to reflect the location where the data is stored. This line is found twice in the second code chunk. The entire notebook can be ran by clicking Kernel/Restart & Run All located at the top console.
 
-To run the shiny app, download Images/Abs.png, Images/Chest.png, Images/Wrist.png, Data/cleaned_data.csv, and Code/. Open the shiny code in R studio and make sure the proper libraries are installed. Click Run App located in the top right corner. You can now enter inputs for the predictors and when the calculate button is pressed, there will be scatter plots for the predicted density and predicted body fat. There is also another tab for the outliers. 
+To run the shiny app, download Images/Abs.png, Images/Chest.png, Images/Wrist.png, Data/cleaned_data.csv, and Code/combined_shiny_app.R. Open the shiny code in R studio and make sure the proper libraries are installed. Click Run App located in the top right corner. You can now enter inputs for the predictors and when the calculate button is pressed, there will be scatter plots for the predicted density and predicted body fat. There is also another tab for the outliers. 
 
 # IMAGES
 The images for the shiny app have all been generated using bdgramR. The code used is found at Code/Body Diagram.R. All that is needed is installation of bdgramR and to click run in the top right corner. 
