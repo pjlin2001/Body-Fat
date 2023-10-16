@@ -18,7 +18,7 @@ outliers_data$Status <- ifelse(outliers_data$outliers, "Outlier", "Normal")
 
 #### UI Definition ####
 ui <- fluidPage(
-  titlePanel("Combined Shiny App"),
+  titlePanel("Combined Shiny App()"),
   tabsetPanel(
     tabPanel("Bodyfat Prediction App", 
              fluidPage(
@@ -112,6 +112,12 @@ ui <- fluidPage(
                )
              )
     )
+  ),
+  tags$hr(),
+  tags$div(
+    style = "text-align: center; margin-top: 20px;",
+    tags$p("For questions about this app, contact:"),
+    tags$a(href = "mailto:example@email.com", "jxu587@wisc.edu")
   )
 )
 #### Server Logic ####
